@@ -354,6 +354,60 @@ def get_all_interviews() -> List[Dict[str, Any]]:
 
 
 # ------------------------------------------------------------------
+# Additional Analytics Functions (Required by Dashboard)
+# ------------------------------------------------------------------
+
+def get_daily_analytics(days: int = 30) -> List[Dict[str, Any]]:
+    """Return daily application counts."""
+
+    query = """
+        SELECT
+            DATE(uploaded_at) AS event_date,
+            COUNT(*) AS applications,
+            SUM(status='Shortlisted') AS shortlisted,
+            SUM(status='Rejected') AS rejected,
+            SUM(status='Hired') AS hired
+        FROM candidates
+        WHERE uploaded_at >= DATE_SUB(NOW(), INTERVAL %s DAY)
+        GROUP BY DATE(uploaded_at)
+        ORDER BY event_date ASC
+    """
+
+    with db_cursor(dictionary=True) as (_, cur):
+        cur.execute(query, (days,))
+        return cur.fetchall()
+
+
+def get_role_distribution() -> List[Dict[str, Any]]:
+    """Return distribution of candidates by role."""
+
+    query = """
+        SELECT role, COUNT(*) AS total
+        FROM candidates
+        GROUP BY role
+        ORDER BY total DESC
+    """
+
+    with db_cursor(dictionary=True) as (_, cur):
+        cur.execute(query)
+        return cur.fetchall()
+
+
+def get_status_distribution() -> List[Dict[str, Any]]:
+    """Return distribution of candidates by status."""
+
+    query = """
+        SELECT status, COUNT(*) AS total
+        FROM candidates
+        GROUP BY status
+    """
+
+    with db_cursor(dictionary=True) as (_, cur):
+        cur.execute(query)
+        return cur.fetchall()
+
+
+# ------------------------------------------------------------------
 # System Health Check
 # ------------------------------------------------------------------
 
