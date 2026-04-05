@@ -1,12 +1,10 @@
 # ==========================================================
-# app.py — TalentAI v4.0  |  Premium Sidebar Design
-# Luxury dark theme · Proper sidebar · Mobile responsive
+# app.py — TalentAI v6.0  |  Reliable Sidebar + MySQL
 # ==========================================================
-
 import streamlit as st
 
 st.set_page_config(
-    page_title="TalentAI — Recruitment Platform",
+    page_title="TalentAI",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -30,600 +28,448 @@ from modules import (
     report_generation, chatbot,
 )
 
-# ══════════════════════════════════════════════════════════
-# MASTER CSS
-# ══════════════════════════════════════════════════════════
+# ──────────────────────────────────────────────────────────
+# CSS — Simple, reliable, sidebar always visible
+# ──────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@700;800&display=swap');
 
-/* ─── RESET ─── */
-*, *::before, *::after { box-sizing: border-box; }
+/* === BASE === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ─── APP BACKGROUND ─── */
-html, body,
-[data-testid="stAppViewContainer"],
-[data-testid="stMain"],
-.main {
-    background: #0A0E1A !important;
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
+html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"], .main {
+    background: #0B0F1C !important;
     color: #CBD5E1 !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
-/* Animated background mesh */
+/* Background glow */
 [data-testid="stAppViewContainer"]::before {
     content: '';
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
     background:
-        radial-gradient(ellipse 900px 600px at 15% 0%, rgba(59,130,246,0.07) 0%, transparent 70%),
-        radial-gradient(ellipse 700px 500px at 85% 100%, rgba(16,185,129,0.05) 0%, transparent 70%),
-        radial-gradient(ellipse 500px 400px at 50% 50%, rgba(139,92,246,0.04) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
+        radial-gradient(ellipse 800px 500px at 10% 5%,  rgba(59,130,246,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 600px 400px at 90% 95%, rgba(16,185,129,0.06) 0%, transparent 60%);
 }
 
-/* ─── HIDE DEFAULT STREAMLIT CHROME ─── */
-#MainMenu, footer, header,
-[data-testid="stToolbar"],
-.stDeployButton,
-[data-testid="collapsedControl"] { display: none !important; }
+/* === HIDE ONLY WHAT WE MUST — keep header so toggle works === */
+#MainMenu, footer, .stDeployButton { display: none !important; }
 
-/* ─── SIDEBAR ─── */
+/* Zero-height header but overflow visible keeps the toggle button */
+header[data-testid="stHeader"] {
+    height: 0 !important;
+    min-height: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
+    position: relative !important;
+    z-index: 1000 !important;
+}
+
+/* === SIDEBAR TOGGLE BUTTON === */
+[data-testid="collapsedControl"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: fixed !important;
+    top: 10px !important;
+    left: 10px !important;
+    z-index: 999999 !important;
+    width: 36px !important; height: 36px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #1E293B !important;
+    border: 1px solid #334155 !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    transition: background 0.2s, border-color 0.2s !important;
+}
+[data-testid="collapsedControl"]:hover {
+    background: #1D4ED8 !important;
+    border-color: #3B82F6 !important;
+}
+[data-testid="collapsedControl"] svg {
+    color: #94A3B8 !important;
+    fill: #94A3B8 !important;
+    width: 16px !important; height: 16px !important;
+}
+[data-testid="collapsedControl"]:hover svg {
+    color: #fff !important; fill: #fff !important;
+}
+
+/* === SIDEBAR === */
 [data-testid="stSidebar"] {
-    background: #0D1117 !important;
-    border-right: 1px solid rgba(255,255,255,0.06) !important;
-    width: 260px !important;
-}
-[data-testid="stSidebar"] > div:first-child {
-    padding: 0 !important;
-    background: transparent !important;
-}
-[data-testid="stSidebarContent"] {
-    background: transparent !important;
-    padding: 0 !important;
-}
-
-/* Sidebar header */
-.sb-header {
-    padding: 28px 20px 24px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.05));
-}
-.sb-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 4px;
-}
-.sb-logo-icon {
-    width: 36px; height: 36px;
-    background: linear-gradient(135deg, #3B82F6, #8B5CF6);
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-    box-shadow: 0 4px 15px rgba(59,130,246,0.4);
-}
-.sb-logo-text {
-    font-family: 'Outfit', sans-serif;
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: -0.02em;
-}
-.sb-logo-sub {
-    font-size: 0.68rem;
-    color: rgba(255,255,255,0.35);
-    font-weight: 400;
-    margin-left: 46px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-
-/* DB status badge */
-.sb-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    margin: 14px 20px 0;
-    padding: 5px 12px;
-    border-radius: 999px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-}
-.sb-badge.live {
-    background: rgba(16,185,129,0.1);
-    color: #10B981;
-    border: 1px solid rgba(16,185,129,0.2);
-}
-.sb-badge.err {
-    background: rgba(239,68,68,0.1);
-    color: #EF4444;
-    border: 1px solid rgba(239,68,68,0.2);
-}
-.sb-badge-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    animation: sb-blink 2s ease-in-out infinite;
-}
-.sb-badge.live .sb-badge-dot { background: #10B981; }
-.sb-badge.err  .sb-badge-dot { background: #EF4444; }
-@keyframes sb-blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
-
-/* Section label */
-.sb-section-label {
-    padding: 22px 20px 8px;
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.2);
-}
-
-/* Nav items via Streamlit radio */
-[data-testid="stSidebar"] [data-testid="stRadio"] > div {
-    gap: 2px !important;
+    background: #0F172A !important;
+    border-right: 1px solid #1E293B !important;
+    width: 256px !important;
+    min-width: 256px !important;
+    max-width: 256px !important;
+    display: flex !important;
     flex-direction: column !important;
 }
-[data-testid="stSidebar"] [data-testid="stRadio"] label {
+[data-testid="stSidebar"] > div:first-child {
+    background: transparent !important;
+    padding: 0 !important;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+section[data-testid="stSidebar"] {
+    background: #0F172A !important;
+}
+
+/* Sidebar scrollable area */
+[data-testid="stSidebarContent"] {
+    background: #0F172A !important;
+    padding: 0 !important;
+    overflow-y: auto !important;
+    height: 100% !important;
+}
+
+/* === SIDEBAR — RADIO NAV === */
+/* Hide the radio widget label text */
+[data-testid="stSidebar"] .stRadio > label { display: none !important; }
+
+/* Radio container — vertical list */
+[data-testid="stSidebar"] .stRadio > div {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    padding: 0 !important;
+}
+
+/* Each nav option label */
+[data-testid="stSidebar"] .stRadio label {
     display: flex !important;
     align-items: center !important;
-    gap: 10px !important;
-    padding: 10px 20px !important;
+    padding: 11px 20px !important;
     margin: 0 !important;
     border-radius: 0 !important;
-    cursor: pointer !important;
-    transition: all 0.18s ease !important;
-    font-size: 0.85rem !important;
+    font-size: 0.875rem !important;
     font-weight: 500 !important;
-    color: rgba(255,255,255,0.5) !important;
-    border: none !important;
+    color: #94A3B8 !important;
+    cursor: pointer !important;
     background: transparent !important;
-    width: 100% !important;
+    border: none !important;
+    border-left: 3px solid transparent !important;
+    transition: all 0.15s !important;
+    white-space: nowrap !important;
 }
-[data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
+[data-testid="stSidebar"] .stRadio label:hover {
+    color: #E2E8F0 !important;
     background: rgba(255,255,255,0.04) !important;
-    color: rgba(255,255,255,0.85) !important;
+    border-left-color: #475569 !important;
 }
-[data-testid="stSidebar"] [data-testid="stRadio"] label[data-testid*="radio"]:has(input:checked),
-[data-testid="stSidebar"] [data-testid="stRadio"] [aria-checked="true"] {
-    background: rgba(59,130,246,0.12) !important;
+/* Active selected item */
+[data-testid="stSidebar"] .stRadio label:has(input:checked) {
     color: #60A5FA !important;
-    border-left: 3px solid #3B82F6 !important;
-}
-/* hide radio circles */
-[data-testid="stSidebar"] [data-testid="stRadio"] input[type="radio"] { display: none !important; }
-[data-testid="stSidebar"] [data-testid="stRadio"] [data-baseweb="radio"] > div:first-child { display: none !important; }
-
-/* Sidebar footer */
-.sb-footer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 16px 20px;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    background: rgba(0,0,0,0.2);
-}
-.sb-footer-text {
-    font-size: 0.68rem;
-    color: rgba(255,255,255,0.2);
-    text-align: center;
-    letter-spacing: 0.03em;
+    background: rgba(59,130,246,0.1) !important;
+    border-left-color: #3B82F6 !important;
+    font-weight: 600 !important;
 }
 
-/* ─── MAIN CONTENT ─── */
-.block-container {
-    padding: 0 !important;
-    max-width: 100% !important;
+/* Hide radio circle dots */
+[data-testid="stSidebar"] .stRadio input[type="radio"] { display: none !important; }
+[data-testid="stSidebar"] .stRadio [data-baseweb="radio"] > div:first-child { display: none !important; }
+
+/* Sidebar buttons */
+[data-testid="stSidebar"] .stButton > button {
+    width: 100% !important;
+    background: rgba(255,255,255,0.04) !important;
+    color: #94A3B8 !important;
+    border: 1px solid #1E293B !important;
+    border-radius: 8px !important;
+    font-size: 0.8rem !important;
+    padding: 8px 16px !important;
+    text-align: left !important;
+    transition: all 0.15s !important;
 }
-[data-testid="stMain"] .block-container > div:first-child {
-    padding: 0 !important;
+[data-testid="stSidebar"] .stButton > button:hover {
+    background: rgba(59,130,246,0.1) !important;
+    color: #60A5FA !important;
+    border-color: rgba(59,130,246,0.3) !important;
 }
 
-/* ─── PAGE TOPBAR ─── */
+/* === MAIN CONTENT === */
+.block-container { padding: 0 !important; max-width: 100% !important; }
+
+/* Page header bar */
 .page-topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 32px 0;
+    padding: 24px 36px 16px 36px;
+    border-bottom: 1px solid #1E293B;
     margin-bottom: 24px;
+    background: rgba(15,23,42,0.5);
+    backdrop-filter: blur(10px);
+    position: relative; z-index: 1;
 }
-.page-title-block h1 {
+.page-crumb {
+    font-size: 0.68rem; color: #475569;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    font-weight: 600; margin-bottom: 6px;
+}
+.page-topbar h1 {
     font-family: 'Outfit', sans-serif;
-    font-size: clamp(1.5rem, 2.5vw, 2rem);
-    font-weight: 800;
-    color: #F1F5F9;
-    letter-spacing: -0.03em;
-    line-height: 1.1;
-    margin: 0;
+    font-size: clamp(1.4rem, 2.2vw, 1.9rem);
+    font-weight: 800; color: #F1F5F9;
+    letter-spacing: -0.03em; line-height: 1.1;
 }
-.page-title-block p {
-    font-size: 0.82rem;
-    color: rgba(255,255,255,0.35);
-    margin-top: 3px;
-    font-weight: 400;
+.page-topbar p {
+    font-size: 0.82rem; color: #475569;
+    margin-top: 4px;
 }
 .accent { color: #3B82F6; }
-.accent-green { color: #10B981; }
 
-/* Breadcrumb-style page path */
-.page-breadcrumb {
-    font-size: 0.72rem;
-    color: rgba(255,255,255,0.2);
-    margin-bottom: 4px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    font-weight: 600;
+/* Content padding */
+.content-wrap {
+    padding: 0 36px 40px;
+    position: relative; z-index: 1;
 }
 
-/* ─── CONTENT WRAPPER ─── */
-.content-area {
-    padding: 0 32px 32px;
-    position: relative;
-    z-index: 1;
-}
-
-/* ─── METRIC CARDS ─── */
+/* === METRIC CARDS === */
 [data-testid="stMetric"] {
-    background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)) !important;
-    border: 1px solid rgba(255,255,255,0.08) !important;
-    border-radius: 16px !important;
-    padding: 20px !important;
-    backdrop-filter: blur(10px) !important;
-    transition: all 0.2s ease !important;
-    position: relative !important;
-    overflow: hidden !important;
-}
-[data-testid="stMetric"]::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(59,130,246,0.4), transparent);
+    background: #131929 !important;
+    border: 1px solid #1E293B !important;
+    border-radius: 14px !important;
+    padding: 18px 20px !important;
+    transition: all 0.2s !important;
 }
 [data-testid="stMetric"]:hover {
-    border-color: rgba(59,130,246,0.25) !important;
-    transform: translateY(-3px) !important;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(59,130,246,0.1) !important;
+    border-color: #2563EB !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
 }
 [data-testid="stMetric"] label {
-    font-size: 0.68rem !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.1em !important;
-    text-transform: uppercase !important;
-    color: rgba(255,255,255,0.35) !important;
+    font-size: 0.68rem !important; font-weight: 700 !important;
+    letter-spacing: 0.09em !important; text-transform: uppercase !important;
+    color: #475569 !important;
 }
 [data-testid="stMetricValue"] {
     font-family: 'Outfit', sans-serif !important;
-    font-size: 1.9rem !important;
-    font-weight: 700 !important;
+    font-size: 1.8rem !important; font-weight: 800 !important;
     color: #F1F5F9 !important;
-    line-height: 1.1 !important;
 }
-[data-testid="stMetricDelta"] { font-size: 0.75rem !important; }
 
-/* ─── BUTTONS ─── */
+/* === BUTTONS === */
 .stButton > button {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
-    font-weight: 600 !important;
-    font-size: 0.83rem !important;
-    border-radius: 10px !important;
-    padding: 0.52rem 1.3rem !important;
-    transition: all 0.2s ease !important;
-    letter-spacing: 0.01em !important;
+    font-weight: 600 !important; font-size: 0.84rem !important;
+    border-radius: 9px !important; padding: 0.5rem 1.2rem !important;
+    transition: all 0.18s !important;
 }
 .stButton > button[kind="primary"] {
-    background: linear-gradient(135deg, #2563EB 0%, #3B82F6 50%, #60A5FA 100%) !important;
-    color: #fff !important;
-    border: none !important;
-    box-shadow: 0 4px 15px rgba(37,99,235,0.35), inset 0 1px 0 rgba(255,255,255,0.1) !important;
+    background: linear-gradient(135deg, #1D4ED8, #3B82F6) !important;
+    color: #fff !important; border: none !important;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.35) !important;
 }
 .stButton > button[kind="primary"]:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 8px 25px rgba(37,99,235,0.5), inset 0 1px 0 rgba(255,255,255,0.15) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 8px 22px rgba(37,99,235,0.5) !important;
 }
 .stButton > button[kind="secondary"] {
-    background: rgba(255,255,255,0.05) !important;
-    color: rgba(255,255,255,0.65) !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
+    background: #131929 !important; color: #94A3B8 !important;
+    border: 1px solid #1E293B !important;
 }
 .stButton > button[kind="secondary"]:hover {
-    background: rgba(255,255,255,0.08) !important;
-    color: #fff !important;
-    border-color: rgba(255,255,255,0.18) !important;
+    background: #1E293B !important; color: #E2E8F0 !important;
 }
 .stButton > button:not([kind]) {
-    background: rgba(255,255,255,0.04) !important;
-    color: rgba(255,255,255,0.6) !important;
-    border: 1px solid rgba(255,255,255,0.08) !important;
+    background: #131929 !important; color: #94A3B8 !important;
+    border: 1px solid #1E293B !important;
 }
 .stButton > button:not([kind]):hover {
-    background: rgba(255,255,255,0.07) !important;
-    color: rgba(255,255,255,0.9) !important;
+    background: #1E293B !important; color: #E2E8F0 !important;
 }
 
-/* ─── INPUTS ─── */
+/* === INPUTS === */
 .stTextInput > div > div > input,
-.stTextArea textarea,
-.stNumberInput input,
-.stDateInput input,
-.stTimeInput input {
-    background: rgba(255,255,255,0.04) !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-    border-radius: 10px !important;
-    color: #E2E8F0 !important;
+.stTextArea textarea, .stNumberInput input,
+.stDateInput input, .stTimeInput input {
+    background: #131929 !important;
+    border: 1px solid #1E293B !important;
+    border-radius: 9px !important; color: #E2E8F0 !important;
     font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-size: 0.87rem !important;
-    transition: all 0.2s ease !important;
 }
 .stTextInput > div > div > input:focus,
 .stTextArea textarea:focus {
-    border-color: rgba(59,130,246,0.5) !important;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.12) !important;
-    background: rgba(59,130,246,0.04) !important;
+    border-color: #3B82F6 !important;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15) !important;
 }
-.stTextInput label, .stTextArea label,
-.stSelectbox label, .stNumberInput label,
-.stDateInput label, .stTimeInput label,
-.stMultiselect label, .stSlider label,
-.stRadio > label, .stFileUploader label,
+.stTextInput label, .stTextArea label, .stSelectbox label,
+.stNumberInput label, .stDateInput label, .stTimeInput label,
+.stMultiselect label, .stSlider label, .stFileUploader label,
 [data-testid="stWidgetLabel"] {
-    color: rgba(255,255,255,0.5) !important;
-    font-size: 0.78rem !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.04em !important;
+    color: #64748B !important; font-size: 0.75rem !important;
+    font-weight: 600 !important; letter-spacing: 0.05em !important;
     text-transform: uppercase !important;
 }
 
 /* Selectbox */
 [data-baseweb="select"] > div {
-    background: rgba(255,255,255,0.04) !important;
-    border-color: rgba(255,255,255,0.1) !important;
-    border-radius: 10px !important;
-    color: #E2E8F0 !important;
-}
-[data-baseweb="select"] > div:focus-within {
-    border-color: rgba(59,130,246,0.4) !important;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.1) !important;
+    background: #131929 !important;
+    border-color: #1E293B !important;
+    border-radius: 9px !important; color: #E2E8F0 !important;
 }
 [data-baseweb="menu"] {
-    background: #151C2C !important;
-    border: 1px solid rgba(255,255,255,0.08) !important;
-    border-radius: 10px !important;
+    background: #0F172A !important;
+    border: 1px solid #1E293B !important;
+    border-radius: 9px !important;
 }
 [data-baseweb="option"] { background: transparent !important; color: #CBD5E1 !important; }
 [data-baseweb="option"]:hover { background: rgba(59,130,246,0.12) !important; }
 
-/* ─── TABS ─── */
+/* === TABS === */
 .stTabs [data-baseweb="tab-list"] {
-    background: rgba(255,255,255,0.03) !important;
-    border-radius: 12px !important;
-    padding: 4px !important;
-    border: 1px solid rgba(255,255,255,0.07) !important;
-    gap: 2px !important;
+    background: #131929 !important;
+    border-radius: 10px !important; padding: 4px !important;
+    border: 1px solid #1E293B !important; gap: 2px !important;
 }
 .stTabs [data-baseweb="tab"] {
-    background: transparent !important;
-    color: rgba(255,255,255,0.4) !important;
-    border-radius: 9px !important;
-    font-size: 0.8rem !important;
-    font-weight: 600 !important;
-    padding: 7px 16px !important;
-    border: none !important;
-    transition: all 0.18s !important;
+    background: transparent !important; color: #64748B !important;
+    border-radius: 7px !important; font-size: 0.82rem !important;
+    font-weight: 600 !important; border: none !important;
 }
-.stTabs [data-baseweb="tab"]:hover { color: rgba(255,255,255,0.75) !important; }
 .stTabs [aria-selected="true"] {
-    background: rgba(59,130,246,0.15) !important;
-    color: #60A5FA !important;
+    background: rgba(59,130,246,0.15) !important; color: #60A5FA !important;
 }
 
-/* ─── DATAFRAME ─── */
+/* === DATAFRAME === */
 [data-testid="stDataFrame"] {
-    border-radius: 14px !important;
-    border: 1px solid rgba(255,255,255,0.07) !important;
-    overflow: hidden !important;
+    border-radius: 12px !important;
+    border: 1px solid #1E293B !important; overflow: hidden !important;
 }
 
-/* ─── EXPANDERS ─── */
+/* === EXPANDERS === */
 details {
-    background: rgba(255,255,255,0.02) !important;
-    border: 1px solid rgba(255,255,255,0.07) !important;
-    border-radius: 12px !important;
-    margin-bottom: 6px !important;
-    overflow: hidden !important;
-    transition: border-color 0.2s !important;
+    background: #131929 !important; border: 1px solid #1E293B !important;
+    border-radius: 10px !important; margin-bottom: 6px !important; overflow: hidden !important;
 }
-details:hover { border-color: rgba(59,130,246,0.2) !important; }
+details:hover { border-color: #2563EB !important; }
 details summary {
-    padding: 12px 16px !important;
-    color: rgba(255,255,255,0.75) !important;
-    font-size: 0.87rem !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
+    padding: 12px 16px !important; color: #CBD5E1 !important;
+    font-size: 0.87rem !important; font-weight: 600 !important; cursor: pointer !important;
 }
 details > div { padding: 0 16px 16px !important; }
 
-/* ─── ALERTS ─── */
-[data-testid="stAlert"] {
-    border-radius: 12px !important;
-    font-size: 0.84rem !important;
-    border-width: 1px !important;
-}
-[data-testid="stAlert"][data-baseweb="notification"] { border-radius: 12px !important; }
-.stSuccess > div, [data-testid="stAlert"][kind="success"] {
-    background: rgba(16,185,129,0.07) !important;
-    border-color: rgba(16,185,129,0.2) !important;
-    color: #6EE7B7 !important;
-}
-.stInfo > div, [data-testid="stAlert"][kind="info"] {
-    background: rgba(59,130,246,0.07) !important;
-    border-color: rgba(59,130,246,0.2) !important;
-    color: #93C5FD !important;
-}
-.stWarning > div, [data-testid="stAlert"][kind="warning"] {
-    background: rgba(245,158,11,0.07) !important;
-    border-color: rgba(245,158,11,0.2) !important;
-    color: #FCD34D !important;
-}
-.stError > div, [data-testid="stAlert"][kind="error"] {
-    background: rgba(239,68,68,0.07) !important;
-    border-color: rgba(239,68,68,0.2) !important;
-    color: #FCA5A5 !important;
-}
+/* === ALERTS === */
+[data-testid="stAlert"] { border-radius: 10px !important; }
+.stSuccess > div { background:rgba(16,185,129,0.08)!important; border-color:rgba(16,185,129,0.25)!important; color:#6EE7B7!important; border-radius:10px!important; }
+.stInfo    > div { background:rgba(59,130,246,0.08)!important; border-color:rgba(59,130,246,0.25)!important; color:#93C5FD!important; border-radius:10px!important; }
+.stWarning > div { background:rgba(245,158,11,0.08)!important; border-color:rgba(245,158,11,0.25)!important; color:#FCD34D!important; border-radius:10px!important; }
+.stError   > div { background:rgba(239,68,68,0.08)!important; border-color:rgba(239,68,68,0.25)!important; color:#FCA5A5!important; border-radius:10px!important; }
 
-/* ─── FILE UPLOADER ─── */
+/* === FILE UPLOADER === */
 [data-testid="stFileUploaderDropzone"] {
-    background: rgba(255,255,255,0.02) !important;
-    border: 2px dashed rgba(255,255,255,0.1) !important;
-    border-radius: 14px !important;
-    transition: all 0.2s !important;
+    background: #131929 !important;
+    border: 2px dashed #1E293B !important;
+    border-radius: 12px !important;
 }
 [data-testid="stFileUploaderDropzone"]:hover {
-    border-color: rgba(59,130,246,0.4) !important;
-    background: rgba(59,130,246,0.03) !important;
+    border-color: #3B82F6 !important; background: rgba(59,130,246,0.04) !important;
 }
 
-/* ─── PROGRESS ─── */
+/* === PROGRESS === */
 [data-testid="stProgressBar"] > div {
-    background: rgba(255,255,255,0.07) !important;
-    border-radius: 999px !important;
+    background: #1E293B !important; border-radius: 999px !important;
 }
 [data-testid="stProgressBar"] > div > div {
-    background: linear-gradient(90deg, #2563EB, #10B981) !important;
+    background: linear-gradient(90deg,#2563EB,#10B981) !important;
     border-radius: 999px !important;
 }
 
-/* ─── SLIDER ─── */
-[data-baseweb="slider"] [role="slider"] {
-    background: #3B82F6 !important;
-    border: 2px solid rgba(255,255,255,0.8) !important;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.25) !important;
-}
-[data-baseweb="slider"] [data-testid="stThumbValue"] { color: #60A5FA !important; }
-
-/* ─── CHAT ─── */
+/* === CHAT === */
 [data-testid="stChatMessage"] {
-    background: rgba(255,255,255,0.03) !important;
-    border: 1px solid rgba(255,255,255,0.07) !important;
-    border-radius: 14px !important;
-    margin-bottom: 10px !important;
-}
-[data-testid="stChatInput"] textarea {
-    background: rgba(255,255,255,0.05) !important;
-    border: 1px solid rgba(255,255,255,0.12) !important;
-    border-radius: 12px !important;
-    color: #E2E8F0 !important;
+    background: #131929 !important; border: 1px solid #1E293B !important;
+    border-radius: 12px !important; margin-bottom: 8px !important;
 }
 
-/* ─── DOWNLOAD BUTTON ─── */
+/* === DOWNLOAD BUTTON === */
 [data-testid="stDownloadButton"] > button {
-    background: rgba(16,185,129,0.1) !important;
-    color: #34D399 !important;
-    border: 1px solid rgba(16,185,129,0.2) !important;
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    transition: all 0.2s !important;
+    background: rgba(16,185,129,0.08) !important; color: #34D399 !important;
+    border: 1px solid rgba(16,185,129,0.25) !important;
+    border-radius: 9px !important; font-weight: 600 !important;
 }
 [data-testid="stDownloadButton"] > button:hover {
-    background: rgba(16,185,129,0.18) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 6px 20px rgba(16,185,129,0.2) !important;
+    background: rgba(16,185,129,0.15) !important;
+    box-shadow: 0 4px 16px rgba(16,185,129,0.2) !important;
 }
 
-/* ─── DIVIDER ─── */
-hr { border-color: rgba(255,255,255,0.06) !important; margin: 20px 0 !important; }
-
-/* ─── MULTISELECT TAGS ─── */
+/* === MISC === */
+hr { border-color: #1E293B !important; margin: 18px 0 !important; }
 [data-baseweb="tag"] {
-    background: rgba(59,130,246,0.15) !important;
-    border-color: rgba(59,130,246,0.25) !important;
-    border-radius: 6px !important;
-    color: #93C5FD !important;
+    background: rgba(59,130,246,0.12) !important;
+    border-color: rgba(59,130,246,0.2) !important;
+    color: #93C5FD !important; border-radius: 6px !important;
 }
-
-/* ─── SCROLLBAR ─── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+::-webkit-scrollbar-track { background: #0B0F1C; }
+::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #334155; }
 
-/* ─── PLOTLY ─── */
-.js-plotly-plot .plotly * { font-family: 'Plus Jakarta Sans', sans-serif !important; }
-
-/* ─── CARD COMPONENT ─── */
-.stat-card {
-    background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 16px;
-    padding: 20px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.2s ease;
-}
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(59,130,246,0.5), transparent);
-}
-.stat-card:hover {
-    border-color: rgba(59,130,246,0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
-}
-
-/* ─── PAGE CARD WRAPPER ─── */
-.page-card {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 20px;
-    padding: 24px;
-    margin-bottom: 20px;
-}
-
-/* ─── RESPONSIVE ─── */
+/* === RESPONSIVE === */
 @media (max-width: 768px) {
-    [data-testid="stSidebar"] { width: 220px !important; }
-    .content-area { padding: 0 16px 20px !important; }
-    .page-topbar { padding: 16px 16px 0 !important; }
-    [data-testid="stMetricValue"] { font-size: 1.5rem !important; }
-}
-@media (max-width: 480px) {
-    [data-testid="stSidebar"] { width: 200px !important; }
-    .content-area { padding: 0 10px 16px !important; }
+    .content-wrap  { padding: 0 16px 24px !important; }
+    .page-topbar   { padding: 16px 16px 12px !important; }
+    [data-testid="stMetricValue"] { font-size: 1.4rem !important; }
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════════
+# ──────────────────────────────────────────────────────────
 # SIDEBAR
-# ══════════════════════════════════════════════════════════
+# ──────────────────────────────────────────────────────────
 with st.sidebar:
-    # Logo header
-    badge_cls = "live" if db_ok is True else "err"
+    # ── Logo & DB badge ──
+    badge_cls   = "live" if db_ok is True else "err"
     badge_label = "MySQL Live" if db_ok is True else "DB Error"
+    badge_color = "#10B981" if db_ok is True else "#EF4444"
+    badge_bg    = "rgba(16,185,129,0.1)" if db_ok is True else "rgba(239,68,68,0.1)"
+    badge_border= "rgba(16,185,129,0.25)" if db_ok is True else "rgba(239,68,68,0.25)"
+
     st.markdown(f"""
-    <div class="sb-header">
-      <div class="sb-logo">
-        <div class="sb-logo-icon">⚡</div>
-        <span class="sb-logo-text">TalentAI</span>
-      </div>
-      <div class="sb-logo-sub">Enterprise Recruitment</div>
-      <div class="sb-badge {badge_cls}">
-        <span class="sb-badge-dot"></span>
-        {badge_label}
-      </div>
+    <div style="padding:24px 20px 16px; border-bottom:1px solid #1E293B;
+                background:linear-gradient(135deg,rgba(59,130,246,0.06),rgba(139,92,246,0.04));">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+            <div style="width:34px;height:34px;background:linear-gradient(135deg,#3B82F6,#8B5CF6);
+                        border-radius:9px;display:flex;align-items:center;justify-content:center;
+                        font-size:18px;box-shadow:0 4px 12px rgba(59,130,246,0.4);flex-shrink:0;">⚡</div>
+            <span style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:800;
+                         color:#F1F5F9;letter-spacing:-0.02em;">TalentAI</span>
+        </div>
+        <div style="font-size:0.62rem;color:#475569;letter-spacing:0.07em;
+                    text-transform:uppercase;margin-left:44px;">Enterprise Recruitment</div>
+        <div style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;
+                    padding:4px 10px;border-radius:999px;font-size:0.67rem;font-weight:700;
+                    letter-spacing:0.05em;text-transform:uppercase;
+                    background:{badge_bg};color:{badge_color};border:1px solid {badge_border};">
+            <span style="width:6px;height:6px;border-radius:50%;background:{badge_color};
+                         display:inline-block;animation:blink 2s infinite;"></span>
+            {badge_label}
+        </div>
     </div>
+    <style>@keyframes blink{{0%,100%{{opacity:1}}50%{{opacity:0.2}}}}</style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="sb-section-label">Main Navigation</div>', unsafe_allow_html=True)
+    # ── Section label ──
+    st.markdown("""
+    <div style="padding:16px 20px 6px;font-size:0.6rem;font-weight:700;
+                letter-spacing:0.12em;text-transform:uppercase;color:#334155;">
+        Navigation
+    </div>""", unsafe_allow_html=True)
 
-    NAV = {
+    # ── Nav radio ──
+    NAV_LABELS = [
+        "📊  Dashboard",
+        "📂  Resume Upload",
+        "🤖  AI Ranking",
+        "⚡  Bulk Processing",
+        "🎯  Job Matching",
+        "📅  Interviews",
+        "📈  Analytics",
+        "📄  Reports",
+        "💬  Chatbot",
+    ]
+    NAV_MAP = {
         "📊  Dashboard":       "Dashboard",
         "📂  Resume Upload":   "Resume Upload",
         "🤖  AI Ranking":      "AI Ranking",
@@ -635,67 +481,72 @@ with st.sidebar:
         "💬  Chatbot":         "Chatbot",
     }
 
-    choice = st.radio(
-        "nav",
-        list(NAV.keys()),
-        label_visibility="collapsed",
-    )
-    active_page = NAV[choice]
+    choice = st.radio("nav", NAV_LABELS, label_visibility="collapsed")
+    active = NAV_MAP[choice]
 
-    st.markdown('<div class="sb-section-label" style="margin-top:16px">Quick Actions</div>', unsafe_allow_html=True)
-    if st.button("🔄  Refresh Data", use_container_width=True, type="secondary"):
-        st.cache_resource.clear()
-        st.rerun()
-
+    # ── Actions ──
     st.markdown("""
-    <div style="position:fixed;bottom:0;left:0;width:260px;padding:14px 20px;
-         border-top:1px solid rgba(255,255,255,0.05);
-         background:rgba(13,17,23,0.9);backdrop-filter:blur(10px);">
-      <div style="font-size:0.65rem;color:rgba(255,255,255,0.18);text-align:center;letter-spacing:0.04em;">
-        TalentAI v4.0 &nbsp;·&nbsp; MySQL + AI Powered
-      </div>
+    <div style="padding:14px 20px 6px;font-size:0.6rem;font-weight:700;
+                letter-spacing:0.12em;text-transform:uppercase;color:#334155;
+                border-top:1px solid #1E293B;margin-top:8px;">
+        Actions
+    </div>""", unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🔄 Refresh", use_container_width=True):
+            st.cache_resource.clear()
+            st.rerun()
+    with col2:
+        if st.button("❓ Help", use_container_width=True):
+            st.session_state["show_help"] = True
+
+    # ── Footer ──
+    st.markdown("""
+    <div style="position:fixed;bottom:0;left:0;width:256px;
+                padding:12px 20px;border-top:1px solid #1E293B;
+                background:#0F172A;text-align:center;">
+        <span style="font-size:0.62rem;color:#334155;">TalentAI v6.0 · MySQL · AI</span>
     </div>
+    <div style="height:48px;"></div>
     """, unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════════
-# PAGE TITLES MAP
-# ══════════════════════════════════════════════════════════
+# ──────────────────────────────────────────────────────────
+# PAGE HEADER
+# ──────────────────────────────────────────────────────────
 PAGE_META = {
-    "Dashboard":      ("📊", "Dashboard",      "Live recruitment metrics from MySQL"),
-    "Resume Upload":  ("📂", "Resume Upload",   "Parse · Score · Store resumes automatically"),
-    "AI Ranking":     ("🤖", "AI Ranking",      "BERT-powered candidate ranking & status management"),
-    "Bulk Processing":("⚡", "Bulk Processing", "Mass re-score, update or delete candidates"),
-    "Job Matching":   ("🎯", "Job Matching",    "Match all candidates against any job description"),
-    "Interviews":     ("📅", "Interviews",      "Schedule and manage the full interview pipeline"),
-    "Analytics":      ("📈", "Analytics",       "Visual hiring insights powered by live MySQL data"),
-    "Reports":        ("📄", "Reports",         "Export CSV and multi-sheet Excel reports"),
-    "Chatbot":        ("💬", "HR Chatbot",      "Ask anything — powered by your live MySQL data"),
+    "Dashboard":       ("📊", "Dashboard",       "Live recruitment metrics from MySQL"),
+    "Resume Upload":   ("📂", "Resume Upload",    "Parse · Score · Store resumes in MySQL"),
+    "AI Ranking":      ("🤖", "AI Ranking",       "AI-powered candidate ranking & status updates"),
+    "Bulk Processing": ("⚡", "Bulk Processing",  "Mass re-score, bulk update, or delete records"),
+    "Job Matching":    ("🎯", "Job Matching",     "Match all candidates against any job role"),
+    "Interviews":      ("📅", "Interviews",       "Schedule and manage interview pipeline"),
+    "Analytics":       ("📈", "Analytics",        "Live visual hiring insights from MySQL"),
+    "Reports":         ("📄", "Reports",          "Export CSV and multi-sheet Excel reports"),
+    "Chatbot":         ("💬", "HR Chatbot",       "Ask anything — powered by your MySQL data"),
 }
-
-icon, title, subtitle = PAGE_META[active_page]
+icon, title, subtitle = PAGE_META[active]
 
 st.markdown(f"""
 <div class="page-topbar">
-  <div class="page-title-block">
-    <div class="page-breadcrumb">TalentAI &rsaquo; {title}</div>
-    <h1>{icon} &nbsp;<span class="accent">{title}</span></h1>
+    <div class="page-crumb">TalentAI &rsaquo; {title}</div>
+    <h1>{icon}&nbsp;<span class="accent">{title}</span></h1>
     <p>{subtitle}</p>
-  </div>
 </div>
-<div class="content-area">
+<div class="content-wrap">
 """, unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════════
-# ROUTE
-# ══════════════════════════════════════════════════════════
-if   active_page == "Dashboard":       dashboard.run()
-elif active_page == "Resume Upload":   resume_upload.run()
-elif active_page == "AI Ranking":      resume_ranking.run()
-elif active_page == "Bulk Processing": bulk_processing.run()
-elif active_page == "Job Matching":    job_matching.run()
-elif active_page == "Interviews":      interview_scheduler.run()
-elif active_page == "Analytics":       analytics.run()
-elif active_page == "Reports":         report_generation.run()
-elif active_page == "Chatbot":         chatbot.run()
+# ──────────────────────────────────────────────────────────
+# ROUTING
+# ──────────────────────────────────────────────────────────
+if   active == "Dashboard":       dashboard.run()
+elif active == "Resume Upload":   resume_upload.run()
+elif active == "AI Ranking":      resume_ranking.run()
+elif active == "Bulk Processing": bulk_processing.run()
+elif active == "Job Matching":    job_matching.run()
+elif active == "Interviews":      interview_scheduler.run()
+elif active == "Analytics":       analytics.run()
+elif active == "Reports":         report_generation.run()
+elif active == "Chatbot":         chatbot.run()
 
 st.markdown("</div>", unsafe_allow_html=True)
