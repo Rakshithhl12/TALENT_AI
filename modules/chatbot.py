@@ -390,9 +390,9 @@ QUICK_STARTERS = [
     "Give me a full overview",
     "Show top 5 candidates",
     "List upcoming interviews",
-    
+    "Which roles have most applicants?",
     "Interview questions for Data Scientist",
-   
+    "What are hiring best practices?",
     "What skills are most common?",
     "Show all shortlisted candidates",
 ]
